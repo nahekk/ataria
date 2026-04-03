@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ataria v2.2 - Filter Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f0c1b;
+            --bg-card: rgba(30, 20, 50, 0.4);
+            --bg-card-hover: rgba(50, 30, 80, 0.6);
+            --border: rgba(140, 82, 255, 0.2);
+            --border-hover: rgba(140, 82, 255, 0.6);
+            --accent: #9253ff;
+            --accent-glow: 0 0 15px rgba(146, 83, 255, 0.6);
+            --text-main: #ffffff;
+            --text-dim: #bbaadd;
+            --input-bg: rgba(10, 5, 20, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(100, 30, 220, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(146, 83, 255, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ffffff, #b692ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(146, 83, 255, 0.3);
+        }
+
+        p.subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .category-group {
+            margin-bottom: 40px;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category-header h2 {
+            font-size: 1.5rem;
+            color: #d1bfff;
+        }
+
+        .btn-toggle-all {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .btn-toggle-all:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: var(--accent-glow);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #332b4b;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .3s;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+            box-shadow: var(--accent-glow);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .limits {
+            display: flex;
+            gap: 10px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        
+        .card.active .limits {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .input-group input {
+            background: var(--input-bg);
+            border: 1px solid rgba(140, 82, 255, 0.3);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(140, 82, 255, 0.4);
+        }
+
+        .action-bar {
+            position: sticky;
+            bottom: 20px;
+            background: rgba(20, 15, 35, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--accent);
+            padding: 20px 40px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), var(--accent-glow);
+            z-index: 100;
+        }
+
+        .generate-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: var(--accent-glow);
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(146, 83, 255, 0.8);
+        }
+
+        .result-code {
+            flex: 1;
+            margin-left: 20px;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.5);
+            border: 1px dashed var(--accent);
+            color: #a5f3a5;
+            border-radius: 10px;
+            font-family: monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: var(--accent-glow);
+            transform: translateX(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="toast" id="toast">✅ Skopiowano do schowka!</div>
+
+<div class="container">
+    <header>
+        <h1>🌟 ATARIA v2.2</h1>
+        <p class="subtitle">Wizualny Konfigurator Metod Płatności — wygeneruj kod i załaduj komendą a.import</p>
+    </header>
+
+    <div id="filters-container">
+        <!-- Generowane z JS -->
+    </div>
+
+    <div class="action-bar">
+        <button class="generate-btn" onclick="generateConfig()">Skopiuj Kod do Bota</button>
+        <div class="result-code" id="result-code">Twój kod importu pojawi się tutaj...</div>
+    </div>
+</div>
+
+<script>
+    // Pełna definicja metod atarii
+    const FILTER_DEFS = [
+        // Kategoria: BLIK -> KRYPTO
+        { cat: "BLIK → KRYPTO", key: "blik_ltc", display: "blik -> ltc" },
+        { cat: "BLIK → KRYPTO", key: "blik_btc", display: "blik -> btc" },
+        { cat: "BLIK → KRYPTO", key: "blik_eth", display: "blik -> eth" },
+        { cat: "BLIK → KRYPTO", key: "blik_usdt", display: "blik -> usdt" },
+        { cat: "BLIK → KRYPTO", key: "blik_usdc", display: "blik -> usdc" },
+        { cat: "BLIK → KRYPTO", key: "blik_trx", display: "blik -> trx" },
+        { cat: "BLIK → KRYPTO", key: "blik_sol", display: "blik -> sol" },
+        { cat: "BLIK → KRYPTO", key: "blik_crypto", display: "blik -> crypto" },
+        
+        // Kategoria: KRYPTO → BLIK
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "ltc_blik", display: "ltc -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "ltc_kodblik", display: "ltc -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "btc_blik", display: "btc -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "btc_kodblik", display: "btc -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "eth_blik", display: "eth -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "eth_kodblik", display: "eth -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "usdt_blik", display: "usdt -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "usdt_kodblik", display: "usdt -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "usdc_blik", display: "usdc -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "usdc_kodblik", display: "usdc -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "trx_blik", display: "trx -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "trx_kodblik", display: "trx -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "sol_blik", display: "sol -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "sol_kodblik", display: "sol -> kod-blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "crypto_blik", display: "crypto -> blik" },
+        { cat: "KRYPTO → BLIK / KOD-BLIK", key: "crypto_kodblik", display: "crypto -> kod-blik" },
+
+        // Kategoria: PSC
+        { cat: "PAYSAFECARD", key: "psc_ltc", display: "psc -> ltc" },
+        { cat: "PAYSAFECARD", key: "psc_blik", display: "psc -> blik" },
+        { cat: "PAYSAFECARD", key: "psc_kodblik", display: "psc -> kod-blik" },
+        { cat: "PAYSAFECARD", key: "pscbezparagonu_ltc", display: "psc bez paragonu -> ltc" },
+        { cat: "PAYSAFECARD", key: "pscbezparagonu_blik", display: "psc bez paragonu -> blik" },
+
+        // Kategoria: SKRILL
+        { cat: "SKRILL", key: "skrill_ltc", display: "skrill -> ltc" },
+        { cat: "SKRILL", key: "skrill_blik", display: "skrill -> blik" },
+        { cat: "SKRILL", key: "skrill_kodblik", display: "skrill -> kod-blik" },
+
+        // Kategoria: ZEN
+        { cat: "ZEN", key: "zen_ltc", display: "zen -> ltc" },
+        { cat: "ZEN", key: "zen_crypto", display: "zen -> crypto" },
+        { cat: "ZEN", key: "zen_usdt", display: "zen -> usdt" },
+        { cat: "ZEN", key: "zen_usdc", display: "zen -> usdc" },
+        { cat: "ZEN", key: "zen_blik", display: "zen -> blik" },
+        { cat: "ZEN", key: "zen_kodblik", display: "zen -> kod-blik" },
+
+        // Kategoria: PAYPAL
+        { cat: "PAYPAL", key: "paypal_blik", display: "paypal -> blik" },
+        { cat: "PAYPAL", key: "paypal_ltc", display: "paypal -> ltc" },
+        { cat: "PAYPAL", key: "paypal_crypto", display: "paypal -> crypto" },
+
+        // Kategoria: PRZELEW
+        { cat: "PRZELEW NA KARTĘ", key: "przelewnakarte_ltc", display: "przelew na karte -> ltc" },
+        { cat: "PRZELEW NA KARTĘ", key: "ltc_przelewnakarte", display: "ltc -> przelew na karte" },
+    ];
+
+    // Grupowanie
+    const categories = {};
+    FILTER_DEFS.forEach(f => {
+        if(!categories[f.cat]) categories[f.cat] = [];
+        categories[f.cat].push(f);
+    });
+
+    const container = document.getElementById('filters-container');
+
+    // Generowanie HTML
+    Object.keys(categories).forEach((catName, index) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'category-group';
+        
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'category-header';
+        
+        const h2 = document.createElement('h2');
+        h2.textContent = catName;
+        
+        const toggleAllBtn = document.createElement('button');
+        toggleAllBtn.className = 'btn-toggle-all';
+        toggleAllBtn.textContent = 'Zaznacz / Odznacz grupę';
+        toggleAllBtn.onclick = () => toggleGroup(index);
+
+        headerDiv.appendChild(h2);
+        headerDiv.appendChild(toggleAllBtn);
+        groupDiv.appendChild(headerDiv);
+
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'grid';
+        gridDiv.id = `grid-${index}`;
+
+        categories[catName].forEach(filter => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${filter.key}`;
+
+            card.innerHTML = `
+                <div class="card-top">
+                    <div class="card-title">${filter.display.toUpperCase()}</div>
+                    <label class="switch">
+                        <input type="checkbox" id="cb-${filter.key}" onchange="updateCard('${filter.key}')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="limits">
+                    <div class="input-group">
+                        <label>Minimum</label>
+                        <input type="number" id="min-${filter.key}" placeholder="Brak" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Maksimum</label>
+                        <input type="number" id="max-${filter.key}" placeholder="Brak" min="0">
+                    </div>
+                </div>
+            `;
+            gridDiv.appendChild(card);
+        });
+
+        groupDiv.appendChild(gridDiv);
+        container.appendChild(groupDiv);
+    });
+
+    function updateCard(key) {
+        const checkbox = document.getElementById(`cb-${key}`);
+        const card = document.getElementById(`card-${key}`);
+        if(checkbox.checked) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    }
+
+    function toggleGroup(index) {
+        const grid = document.getElementById(`grid-${index}`);
+        const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
+        let allChecked = true;
+        checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+        
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+            const key = cb.id.replace('cb-', '');
+            updateCard(key);
+        });
+    }
+
+    function generateConfig() {
+        const result = {};
+        
+        FILTER_DEFS.forEach(filter => {
+            const isChecked = document.getElementById(`cb-${filter.key}`).checked;
+            if (isChecked) {
+                const minVal = document.getElementById(`min-${filter.key}`).value;
+                const maxVal = document.getElementById(`max-${filter.key}`).value;
+                
+                result[filter.key] = {
+                    enabled: true,
+                    min: minVal !== "" ? parseInt(minVal) : null,
+                    max: maxVal !== "" ? parseInt(maxVal) : null
+                };
+            }
+        });
+
+        // Jak puste to nic
+        if(Object.keys(result).length === 0) {
+            alert("Brak włączonych metod!");
+            return;
+        }
+
+        const jsonStr = JSON.stringify(result);
+        
+        // Base64 i kod do komendy
+        // Uzywamy encodeURIComponent aby uniknac problemow z utf-8 jesli wystapia
+        const base64Str = btoa(encodeURIComponent(jsonStr));
+        const command = `a.import ATARIA:${base64Str}`;
+
+        const resBox = document.getElementById('result-code');
+        resBox.textContent = command;
+
+        // Kopiuj do schowka
+        navigator.clipboard.writeText(command).then(() => {
+            showToast();
+        }).catch(err => {
+            console.error('Błąd kopiowania', err);
+        });
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
